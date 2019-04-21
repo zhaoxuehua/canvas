@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        #box{
+            border: 1px solid red;
+        }
+        img{
+            display:none;
+        }
+    
+    </style>
+</head>
+<body>
+    <h2>
+        一、绘制图像 <br>
+        二、状态保存与回滚学习<br>
+        三、平移<br>
+        四、旋转 <br>
+        五、缩放 <br>
+        六、判断点在不在路径中
+    </h2>
+    <canvas id="box" width=700 height=800></canvas>
+    <img src="img/1.jpg" alt="" id="im">
+
+    <script>
+        var cav=document.getElementById("box");
+        var tex=cav.getContext("2d");
+        var img=document.getElementById("im");
+
+        tex.save();
+        //修改属性  即修改状态
+        tex.beginPath();
+        tex.lineWidth=5;
+        tex.lineCap="round";
+        tex.strokeStyle="red";
+        tex.moveTo(400,400);
+        tex.lineTo(500,400);
+        tex.stroke();
+
+        tex.save();
+        tex.beginPath();
+        tex.lineWidth=10;
+        tex.lineCap="square";
+        tex.strokeStyle="blue";
+        tex.moveTo(500,500);
+        tex.lineTo(600,500);
+        tex.stroke();
+
+        //回滚
+        tex.beginPath();
+        tex.moveTo(500,550);
+        tex.lineTo(700,550);
+        tex.stroke();
+        
+
+
+        
+        img.onload=function(){
+            tex.drawImage(img,10,40,300,200);
+            tex.drawImage(img,0,51,100,100,500,100,100,100);
+
+      }
+
+      tex.beginPath();
+      tex.fillRect(0,400,100,100);
+
+      tex.beginPath();
+      tex.fillStyle="pink";
+      tex.translate(200,0); 
+      tex.fillRect(0,400,100,100);
+
+      //旋转
+      var te=cav.getContext("2d");
+      te.beginPath();
+      te.fillStyle="blue";
+      te.fillRect(0,700,50,50);
+      te.beginPath();
+      te.fillStyle="red";
+      te.rotate(Math.PI/6);
+      te.fillRect(0,700,50,50);
+      //缩放 .scale(x轴缩放比例,y轴缩放比例)
+   
+    </script>
+    
+</body>
+</html>

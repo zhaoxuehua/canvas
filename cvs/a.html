@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        canvas{  
+            border:1px solid red;
+        }
+    
+    </style>
+</head>
+<body>
+    <h1>已学习内容</h1>
+    <h3>
+        一、绘制矩形的函数封装<br>
+        二、面向对象的矩形绘制封装<br>
+           注意：当填充和描边的顺序不同时出现的图形会有影响  谁在后覆盖前面的一部分 即线宽的一半，为了让线宽符合标准，最好先填充后描边
+        三、线条的绘制<br>
+            注意：canvas在绘制线条时：会向左向右偏移线宽的一半.如果线宽是奇数则边缘的颜色值会缩减一半。如果线宽为偶数则颜色纯正<br>
+            1、线条末端样式学习（线冒）<br>
+            2、线交点样式<br>
+        四、内置画画矩形的API <br>
+        五、利用定时器让矩形移动<br>
+        六、画一个渐变矩形<br>
+        七、绘制虚线<br>
+
+
+   </h3>
+
+
+    <canvas id="box"  width=1200 height=850></canvas>
+    <script>
+    var canvas=document.getElementById("box");
+//封装成函数的基本形式，if是用来判断支不支持绘画功能，即支不支持canvas
+    function draw(){
+        if(canvas.getContext){
+            var tex=canvas.getContext('2d');
+            tex.fillStyle='blue';
+            tex.fillRect(25,25,100,100);  
+            tex.clearRect(30,30,60,60);//清除矩形区域让其透明
+        }
+    }  
+     draw();//调用函数画图
+
+ var te=canvas.getContext('2d');//获得渲染上下文和绘画功能
+
+// //1、矩形绘制封装
+    function juxing(srartX,startY,width,height,lineWidth,strokeStyle){    
+        te.moveTo(srartX,startY);
+        te.lineTo(srartX+width,startY);
+        te.lineTo(srartX+width,startY+height);
+        te.lineTo(srartX,startY+height);
+        te.lineWidth=lineWidth;
+        te.strokeStyle=strokeStyle;
+        te.closePath();
+        te.stroke();
+        // te.fill();//每次单独设置自己的填充颜色，或者线条绘制颜色，否则会默认上边的
+
+    }
+    juxing(20,20,50,50,4,"deeppink");
+    te.beginPath();//为了防止重绘之前的路径，这里加上表示重绘一条新的路径
+    juxing(55,55,100,150,2,"black");
+
+//2、面向对象的矩形封装 构造函数 键值对   优点可以保留数据 想要知道某个图形的某个属性时，可用对象的.属性来换取 但会耗费内存
+            function JuXing(te,srartX,startY,width,height,lineWidth,strokeStyle){
+                //构造函数的作用 初始化对象
+                this.te=te;
+                this.srartX=srartX;
+                this.startY=startY;
+                this.width=width;
+                this.height=height;
+                this.lineWidth=lineWidth;
+                this.strokeStyle=strokeStyle;     
+            }
+            //给构造函数的原型，增加方法，避免了资源浪费
+            JuXing.prototype.draw2=function(){
+                this.te=te;
+                this.te.beginPath();//避免重复以前的
+                this.te.moveTo(this.srartX,this.startY);
+                this.te.lineTo(this.srartX+this.width,this.startY);
+                this.te.lineTo(this.srartX+this.width,this.startY+this.height);
+                this.te.lineTo(this.srartX,this.startY+this.height);
+                this.te.lineWidth=this.lineWidth;
+                this.te.strokeStyle=this.strokeStyle;
+                this.te.closePath();
+                this.te.stroke();   
+            }
+            var p=new JuXing(te,90,90,100,100,6,"rgb(20,20,200)");
+            p.draw2();
+      
+ //2-1、面向对象的封装，填充 与绘制轮廓  
+                function JuXing2(te,srartX,startY,width,height,lineWidth,strokeStyle,fillStyle){
+                                //构造函数的作用 初始化对象
+                                this.te=te;
+                                this.srartX=srartX;
+                                this.startY=startY;
+                                this.width=width;
+                                this.height=height;
+                                this.lineWidth=lineWidth;
+                                this.strokeStyle=strokeStyle;    
+                                this.fillStyle=fillStyle;
+                            }
+                            //给构造函数的原型，增加方法，避免了资源浪费
+                            JuXing2.prototype.draw3=function(){
+                                this.te=te;
+                                this.te.beginPath();//避免重复以前的
+                                this.te.moveTo(this.srartX,this.startY);
+                                this.te.lineTo(this.srartX+this.width,this.startY);
+                                this.te.lineTo(this.srartX+this.width,this.startY+this.height);
+                                this.te.lineTo(this.srartX,this.startY+this.height);
+                                this.te.lineWidth=this.lineWidth;
+                                this.te.strokeStyle=this.strokeStyle;
+                                this.te.fillStyle=this.fillStyle;
+                                this.te.closePath();
+                                //注意：当填充和描边的顺序不同时出现的图形会有影响  谁在后覆盖前面的一部分 即线宽的一半，为了让线宽符合标准，最好先填充后描边
+                                //this.te.stroke(); 
+                                this.te.fill();  
+                                this.te.stroke(); 
+                            }
+                            var p2=new  JuXing2(te,200,200,90,90,8,"green","red");
+                            p2.draw3();
+
+//3、绘制线条
+                                    te.beginPath();
+                                    te.lineWidth=5;
+                                    te.moveTo(60,360);
+                                    te.lineTo(300,360);
+                                   
+                                    te.stroke();
+
+//3-1、线冒
+                            te.beginPath(); 
+                            te.lineWidth=15;
+                            te.lineCap="round";
+                            te.moveTo(90,390);
+                            te.lineTo(300,560);
+                            te.stroke();
+
+                            te.strokeStyle="red";
+                            te.lineCap="square";
+                            te.beginPath(); 
+                            te.moveTo(120,460);
+                            te.lineTo(350,660);
+                            te.stroke();
+
+//3-2、线交点样式             
+                            te.beginPath(); 
+                            te.lineJoin="miter";
+                            te.moveTo(500,500);
+                            te.lineTo(550,600);
+                            te.lineTo(600,500);
+                            te.stroke(); 
+
+                            te.beginPath(); 
+                            te.lineJoin="round";
+                            te.lineCap="square";
+                            te.moveTo(500,700);
+                            te.lineTo(550,800);
+                            te.lineTo(600,700);
+                            te.stroke();  
+
+                            te.beginPath(); 
+                            te.lineJoin="bevel";
+                            te.lineCap="round";
+                            te.moveTo(500,600);
+                            te.lineTo(550,700);
+                            te.lineTo(600,600);
+                            te.stroke();  
+
+//4、内置画矩形的API
+//5、让矩形移动
+                    function JuXing3(te,srartX,startY,width,height,lineWidth,strokeStyle,fillStyle){
+                                //构造函数的作用 初始化对象
+                                this.te=te;
+                                this.srartX=srartX;
+                                this.startY=startY;
+                                this.width=width;
+                                this.height=height;
+                                this.lineWidth=lineWidth;
+                                this.strokeStyle=strokeStyle;    
+                                this.fillStyle=fillStyle;
+                            }
+                            //给构造函数的原型，增加方法，避免了资源浪费
+                            JuXing3.prototype.draw4=function(){
+                                this.te=te;
+                                this.te.beginPath();//避免重复以前的
+                                this.te.moveTo(this.srartX,this.startY);
+                                this.te.lineTo(this.srartX+this.width,this.startY);
+                                this.te.lineTo(this.srartX+this.width,this.startY+this.height);
+                                this.te.lineTo(this.srartX,this.startY+this.height);
+                                this.te.lineWidth=this.lineWidth;
+                                this.te.strokeStyle=this.strokeStyle;
+                                this.te.fillStyle=this.fillStyle;
+                                this.te.closePath();
+                                //注意：当填充和描边的顺序不同时出现的图形会有影响  谁在后覆盖前面的一部分 即线宽的一半，为了让线宽符合标准，最好先填充后描边
+                                //this.te.stroke(); 
+                                this.te.fill();  
+                                this.te.stroke(); 
+                            }
+                            var p3=new  JuXing3(te,700,100,100,90,8,"black","red");
+                           // p3.draw4();
+                           setInterval(function(){
+                            p3.srartX+=10;
+                               p3.draw4();
+                           },200);
+//6、画一个渐变矩形 
+
+                        for(var i=0;i<255;i++){
+                            te.beginPath();
+                            te.moveTo(800,500+i);
+                            te.lineTo(900,500+i);
+                            te.strokeStyle="rgb(0,'+i+',0)";
+                            te.stroke();
+                        } 
+                        // var grd=te.createLinearGradient(380,180,175,50);
+                        // grd.addColorStop(0,"#FF0000");
+                        // grd.addColorStop(1,"#00FF00");
+                        // te.fillStyle=grd;
+                        // te.fillRect(380,180,175,50);
+
+
+
+
+//7、画虚线  控制好实线与空白部分的大小
+                        te.beginPath();
+                        te.lineWidth=2;
+                        te.setLineDash([4,3]);
+                       // te.lineDashOffset=3;//虚线起始位置偏移量
+                        te.moveTo(200,320);
+                        te.lineTo(600,320);
+                        te.stroke();
+
+     
+
+//绘制坐标轴
+                 //定义一个对象，规定坐标轴到画布位置
+                 var paddinng={
+                     top:10,
+                     right:10,
+                     bottom:10,
+                     left:10
+
+                 }
+                 //坐标轴三点坐标
+                 var sTop={
+                     x:padding.left,
+                     y:padding.top
+                 }
+                 var origin={
+                    x:padding.left,
+                    y:te.height-padding.bottom
+                 }
+                 var sRight={
+                     x:te.height-padding.right,
+                     y:te.height-padding.bottom
+
+                 }
+                 //画坐标轴的两条线
+                 te.beginPath();
+                 te.lineWidth=2;
+                 te.strokeStyle="black";
+                 te.moveTo(sTop.x,sTop.y);
+                 te.lineTo(origin.x,origin.y);
+                 te.lineTo(sRight.x,sRight.y);
+                 te.stroke();
+                 //再画箭头
+
+
+
+
+
+
+
+
+    </script>
+</body>
+</html>

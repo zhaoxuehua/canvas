@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #box {
+            border: 1px solid red;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>
+        一、画弧 <br> 
+        .arc( 圆心x轴坐标，圆心y轴坐标，半径, 起点弧度，结束点弧度，是否逆时针画(可选) ) <br>
+          1、顺时针画弧 <br>
+          2、逆时针画弧<br>
+          3、画圆<br>
+          4、画扇形<br>
+        二、饼图 <br>
+        三、绘制文字
+        四、在圆上画点案例
+
+    </h2>
+    <canvas id="box" width=800 height=900></canvas>
+
+
+    <script>
+        //  map方法定义在Array.prototype上，所以所有的数组都可以访问
+        //  语法：数组.map( 回调函数 )
+        //  作用：接收回调函数的返回值，共同构成一个新数组返回。
+
+        // canvas是基于状态：//  状态就是变量不同时期的值。
+        //  strokeStyle = 'red';
+        //  strokeStyle = 'blue';
+        //  主要strokeStyle变化了，那么接下来所有和描边相关的绘制方法都会受到影响。 
+
+        //注意： 第一个lineTo就相当于是moveTo
+        // 这里所谓的第一个，指的是当前路径的第一次（给定beginPath()若没有moveTo 第一个lineTo 就相当于moveTo）
+        var canvas = document.getElementById("box");
+        var te = canvas.getContext("2d");
+
+        // 把角度转换为弧度
+        function angleToRadian( angle ) {
+            return Math.PI / 180 * angle;
+        }
+
+// 顺时针画一段弧
+         te.arc( 100, 100, 30, angleToRadian( 90 ), angleToRadian( 270 ) );
+         te.stroke();
+// 逆时针画一段弧
+       te.beginPath();
+       te.arc( 200, 100, 30, angleToRadian( 90 ), angleToRadian( 270 ), true );
+       te.stroke();
+
+// 一个弧圆
+       te.beginPath();
+       te.arc( 300, 100, 30, angleToRadian( 90 ), angleToRadian( 360 ) );
+       te.stroke();
+      
+//画圆
+       te.beginPath();
+       te.arc( 400, 100, 30, angleToRadian( 0 ), angleToRadian( 360 ) );
+       te.stroke();
+//画扇形
+    //    1、先设置路径起点为圆心
+    //    2、画弧
+    //    3、闭合路径
+       te.beginPath();
+       te.moveTo(100,270);
+       te.arc( 100, 270, 30, angleToRadian( 210 ), angleToRadian( 360 ) );
+       te.closePath();
+       te.stroke();
+
+       te.beginPath();
+       te.moveTo(300,270);
+       te.arc( 300, 270, 30, angleToRadian( 250 ), angleToRadian( 360 ) );
+       te.closePath();
+       te.stroke();
+
+       te.beginPath();
+       te.moveTo(500,250);
+       te.arc( 500, 250, 30, angleToRadian( 80 ), angleToRadian( 360 ) );
+       te.closePath();
+       te.stroke();
+
+//饼图  即多个扇形拼接 封装成面向对象，方便每次调用画一个新的扇形  最好应用沙箱模式
+  var ctx = canvas.getContext("2d");
+    // 把角度转换为弧度
+            function angleToRadian( angle ) {
+                return Math.PI / 180 * angle;
+            }
+
+    // 混入式继承  o1继承o2
+            function extend( o1, o2 ) {
+                for ( var key in o2 ) {
+                    // 只有o2自己的属性才会copy到o1身上
+                    if ( o2.hasOwnProperty( key ) ) {
+                        o1[ key ] = o2[ key ];
+                    }
+                }
+            }
+    //饼图构造函数
+            function Pipe( x, y, r, data ) {
+                this.x = x;
+                this.y = y;
+                this.r = r;
+                this.data = data;
+
+                // 一组颜色。画饼图需要 用数组来定义
+                this.colors = [ 'orange', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'peru', 'pink' ];
+                }
+           
+    // 给原型扩充方法，即调用extend函数，让原型添加一些方法
+    extend( Pipe.prototype, {
+
+        // 绘制饼图
+        draw: function() {
+            // 在外面保存一下this
+            var self = this;
+
+            // 数据的总和
+            var num = 0;
+            // 1、对data进行遍历，求出数据总和
+            this.data.forEach( function( val ) {
+                num += val;
+            });
+
+            //2、 一个数据值所占用的角度
+            var baseAngle = 360 / num;
+            // 假设一开始就绘制了一个起始为0，结束为0的扇形（到时根据传入的值，画），为了画扇形时两个拼接
+            var startAngle = 0,
+                endAngle = 0;
+
+
+            // 画扇形
+            this.data.forEach( function( val, i ) {
+
+                // 每次进来，计算当前扇形的起始角度和结束角度
+
+                // 下一个扇形的起始角度，是当前扇形的结束角度
+                startAngle = endAngle;
+                // 这个结束角度 = 上一个扇形的结束角度 + 当前数值所对应的角度
+                endAngle = endAngle + baseAngle * val
+
+                // 第一个扇形
+                ctx.beginPath();
+                ctx.moveTo( self.x, self.y );
+                ctx.arc( self.x, self.y, self.r, angleToRadian( startAngle ), angleToRadian( endAngle ) );
+                ctx.closePath();
+                ctx.fillStyle = self.colors[ i ];
+                ctx.fill();
+            });
+        }
+        } );
+            
+            var pipe=new Pipe(100,400,80,[10,30,50,60,20]);
+            pipe.draw();
+
+            var pipe2=new Pipe(350,400,80,[50,80,50,60,20,50,70,5]);
+            pipe2.draw();
+
+
+//饼图升级 沙箱模式  且有标识
+
+(function( w ) {
+
+        // 把角度转换为弧度
+        function angleToRadian( angle ) {
+            return Math.PI / 180 * angle;
+        }
+
+        // 混入式继承
+        function extend( o1, o2 ) {
+            for ( var key in o2 ) {
+                // 只有o2自己的属性才会copy到o1身上
+                if ( o2.hasOwnProperty( key ) ) {
+                    o1[ key ] = o2[ key ];
+                }
+            }
+        }
+
+        
+        function Pipe( x, y, r, data ) {
+
+            this.x = x;
+            this.y = y;
+            this.r = r;
+            this.data = data;
+
+            // 一组颜色
+            this.colors = [ 'orange', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'peru', 'pink' ];
+        }
+
+        // 给原型扩充方法
+        extend( Pipe.prototype, {
+
+            // 绘制饼图
+            draw: function() {
+
+                // 在外面保存一下this
+                var self = this;
+
+                // 数据的总和
+                var num = 0;
+                this.data.forEach( function( obj ) {
+                    num += obj.val;
+                });
+
+                // 一个数据值所占用的角度
+                var baseAngle = 360 / num;
+
+                // 假设一开始就绘制了一个起始为0，结束为0的扇形       后两句为升级的内容 
+                var startAngle = 0,
+                    endAngle = 0,
+                    lineAngle = 0,
+                    lineX, lineY;
+
+                // 画扇形
+                this.data.forEach( function( obj, i ) {
+
+                    // 每次进来，计算当前扇形的起始角度和结束角度
+
+                    // 下一个扇形的起始角度，是当前扇形的结束角度
+                    startAngle = endAngle;
+                    // 这个结束角度 = 上一个扇形的结束角度 + 当前数值所对应的角度 之前是数据，现在是对象，对象里面属性 值
+                    endAngle = endAngle + baseAngle * obj.val;
+
+                    // 求扇形中间线的角度
+                    lineAngle = startAngle + baseAngle * obj.val / 2;
+                    /*
+                    * 根据中间线的角度，求中间的线的x和y坐标：
+                    * x = 圆心x + r * Math.cos( angleToRadian( pointAngle ) )
+                    * y = 圆心y + r * Math.sin( angleToRadian( pointAngle ) )
+                    * */
+                    lineX = self.x + ( self.r + 20 ) * Math.cos( angleToRadian( lineAngle ) );
+                    lineY = self.y + ( self.r + 20 ) * Math.sin( angleToRadian( lineAngle ) );
+
+
+                    // 画每一个扇形
+                    ctx.beginPath();
+                    ctx.moveTo( self.x, self.y );
+                    ctx.arc( self.x, self.y, self.r, angleToRadian( startAngle ), angleToRadian( endAngle ) );
+                    ctx.closePath();
+                    ctx.fillStyle = self.colors[ i ];
+                    ctx.fill();
+
+
+                //以下为升级版的内容
+                    // 画每一个扇形的平分线
+                    ctx.beginPath();
+                    ctx.moveTo( self.x, self.y );
+                    ctx.lineTo( lineX, lineY );
+                    ctx.strokeStyle = self.colors[ i ];
+                    ctx.stroke();
+
+                    // 绘制文字
+                    if ( lineAngle >= 90 && lineAngle <= 270 ) {
+                        ctx.textAlign = 'right';
+                    }else {
+                        ctx.textAlign = 'left';
+                    }
+                    ctx.fillText( obj.msg, lineX, lineY );
+                });
+            }
+        } );
+
+        // 把构造函数暴露到全局
+        w.Pipe = Pipe;
+
+        }( window ));
+
+         var pipe = new Pipe( 600, 400, 80, [
+            {
+                val: 10,
+                msg: '食品'
+            },
+            {
+                val: 30,
+                msg: '石油'
+            },
+            {
+                val: 50,
+                msg: '金融'
+            },
+            {
+                val: 50,
+                msg: '电子'
+            },
+            {
+                val: 50,
+                msg: '木材'
+            },
+            {
+                val: 90,
+                msg: '其他'
+            },
+        ] );
+        pipe.draw();
+
+
+
+//文字绘制
+      ctx.font = '2rem 微软雅黑';
+      ctx.strokeText( '哈哈哈嘻嘻嘻嘻嘻', 20, 600 );
+      ctx.fillStyle="red";
+      //ctx.textAlign = 'left';
+      ctx.textBaseline = 'top' ;
+      ctx.fillText( '你好咯咯咯咯', 300, 600 );
+
+  // 绘制文字的参考点    
+      ctx.beginPath();
+        ctx.arc( 20, 600, 4, 0, Math.PI * 2 );
+        ctx.fill();
+        ctx.beginPath();
+        ctx.fillStyle="blue";
+        ctx.arc( 300, 600, 4, 0, Math.PI * 2 );
+        ctx.fill();
+        //设置文字的水平对其方式：ctx.textAlign = 'left || start'是默认的  、 'right || end' 、 'center'
+        //设置文字的垂直对其方式:ctx.textBaseline = 'top' 、'bottom'、'middle'、'alphabetic'、'hanging'、'ideographic'
+
+//在画布四角绘制文字       
+        ctx.font = '28px 微软雅黑';
+        ctx.fillStyle = 'green';
+        // 在画布的左上角绘制一段文字
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText( '左上角', 0, 0 );
+
+        // 在画布的右上角绘制一段文字
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText( '右上角', canvas.width, 0 );
+
+        // 在画布的左下角绘制一段文字
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText( '左下角', 0,canvas.height );
+
+        // 在画布的右下角绘制一段文字
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText( '右下角', canvas.width, canvas.height );
+
+//在圆60度的方向画一个点
+   //首先画一个圆
+       var x = 200, y = 800, r = 90, pointAngle = 60;
+        ctx.beginPath();
+        ctx.arc( x, y, r, 0, Math.PI * 2 );
+        ctx.stroke();
+    //画点
+    //   求这个点的坐标：
+    //     x = 圆心x + r * Math.cos( angleToRadian( pointAngle ) )
+    //     y = 圆心y + r * Math.sin( angleToRadian( pointAngle ) )
+        ctx.beginPath();
+        ctx.arc( x + r * Math.cos( angleToRadian( pointAngle ) ),
+                y + r * Math.sin( angleToRadian( pointAngle ) ),   6,  0, 360);
+        ctx.fill();
+
+    </script>
+
+
+</body>
+
+</html>
